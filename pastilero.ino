@@ -1,3 +1,7 @@
+//Variables temporales (quitar codigo final es para compilar)
+int ledPin = 2;
+int ledState = LOW;
+
 // #########################-TELEGRAM LIBRARIES-############################# //
 #ifdef ESP32
 #include <WiFi.h>
@@ -114,7 +118,7 @@ WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org");
 //################# NTP CREDENTIALS END #######
 //######################### NTP GET TIME ##########################
-void getTime(format) {
+void getTime(String format) {
 	timeClient.update();
 	switch (format) {
 	case "time":
