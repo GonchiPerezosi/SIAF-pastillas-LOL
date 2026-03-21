@@ -46,6 +46,29 @@ void addTakenEntry(String id, int h, int m, int d) {
 	taken_count++;
 }
 //taken pills data structure END
+// Air data structure
+struct AirEntry {
+	String identity;
+	int hours;
+	int minutes;
+	int quality;
+	int temp;
+	int hum;
+};
+
+AirEntry air_data[100];
+int air_count = 0;
+
+void addAirEntry(String id, int h, int m, int q, int t, int hum) {
+	air_data[air_count].hours = h;
+	air_data[air_count].minutes = m;
+	air_data[air_count].quality = q;
+	air_data[air_count].temp = t;
+	air_data[air_count].hum = hum;
+	air_data[air_count].identity = id;
+	air_count++;
+}
+//Air data structure END
 
 //Devices in the ecosystem data structure
 struct Device {
