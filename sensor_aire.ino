@@ -7,9 +7,9 @@
 #include <ESP8266HTTPClient.h>
 #include <WiFiClient.h>
 
-const char* ssid = "REPLACE_WITH_YOUR_SSID";
-const char* password = "REPLACE_WITH_YOUR_PASSWORD";
-String serverName = "SERVER AIR DATA";
+const char* ssid = "ssid";
+const char* password = "contraseña"; //como q no os la voy a dar la mia
+String serverName = "http://192.168.0.168/post_air_data";
 
 // --- Pins ---
 #define BUZZER_PIN 14 
@@ -27,8 +27,8 @@ ScioSense_ENS160 ens160(ENS160_I2CADDR_1);
 Adafruit_NeoPixel pixels(NUM_PIXELS, NEO_PIN, NEO_GRB + NEO_KHZ800);
 
 // --- State Variables ---
-bool showGreen = false;      
-int lastButtonState = HIGH;          
+bool showGreen = true;      
+int lastButtonState = LOW;
 unsigned long lastSendTime = 0; 
 
 // --- Function Prototypes ---
@@ -99,27 +99,30 @@ void loop() {
 
     updateLedsBasedOnAir(currentAqi); 
 
-    if (millis() - lastSendTime >= 60000) {
-        WiFiClient client;
-        HTTPClient http;
-        http.begin(client, serverName);
-        http.addHeader("Content-Type", "application/json");
-        String httpRequestData;
-        httpRequestData += "{";
-        httpRequestData += "\"temp\":" + String(tempC) + ",";
-        httpRequestData += "\"humidity\":" + String(humidity) + ",";
-        httpRequestData += "\"aqi\":" + String(currentAqi) + ",";
-        httpRequestData += "\"co2\":" + String(ens160.geteCO2()) + ",";
-        httpRequestData += "\"tvoc\":" + String(ens160.getTVOC());
-        httpRequestData += "}";
-        Serial.println("---- Sending Data? ----");
+    if (millis() - lastSendTime >= 10000) {
 
-        int httpResponseCode = http.POST(httpRequestData);
-        Serial.print("HTTP Response code: ");
-        Serial.println(httpResponseCode);
-        http.end();
-        lastSendTime = millis();
-    }
+      WiFiClient client;
+      HTTPClient http;
+
+      http.begin(client, serverName);
+      http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+
+      String httpRequestData;
+      httpRequestData = "identity=air_sensor";
+      httpRequestData += "&hour=0";
+      httpRequestData += "&minute=0";
+      httpRequestData += "&quality=" + String(currentAqi);
+      httpRequestData += "&temp=" + String(tempC);
+      httpRequestData += "&hum=" + String(humidity);
+
+      int httpResponseCode = http.POST(httpRequestData);
+
+      Serial.print("HTTP Response code: ");
+      Serial.println(httpResponseCode);
+
+      http.end();
+      lastSendTime = millis();
+  }
     Serial.print("AQI: "); Serial.print(currentAqi);
     Serial.print(" | CO2: "); Serial.print(ens160.geteCO2());
     Serial.print(" ppm | TVOC: "); Serial.print(ens160.getTVOC());
