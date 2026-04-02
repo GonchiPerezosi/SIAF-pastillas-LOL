@@ -7,9 +7,13 @@
 #include <ESP8266HTTPClient.h>
 #include <WiFiClient.h>
 
-const char* ssid = "ssid";
-const char* password = "contraseña"; //como q no os la voy a dar la mia
-String serverName = "http://192.168.0.168/post_air_data";
+#include <NTPClient.h>//para el ntp
+#include <WiFiUdp.h>// para el ntp
+
+const char* ssid = "Salón Redonda";
+const char* password = "Redondamola!";
+String serverName = "http://192.168.50.122/post_air_data";
+String device_identity = "air_sensor_test_1";
 
 // --- Pins ---
 #define BUZZER_PIN 14 
@@ -35,6 +39,35 @@ unsigned long lastSendTime = 0;
 void applyColor(int r, int g, int b);
 void updateLedsBasedOnAir(int currentAqi);
 void flashExposure(); 
+
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, "pool.ntp.org");
+String getTime(int format) {
+  timeClient.update();
+
+  switch (format) {
+
+    case 1: {
+      String form = timeClient.getFormattedTime();
+      return form;
+    }
+
+    case 2: {
+      return String(timeClient.getHours());
+    }
+
+    case 3: {
+      return String(timeClient.getMinutes());
+    }
+
+    case 4: {
+      return String(timeClient.getSeconds());
+    }
+
+    default:
+      return "";
+  }
+}
 
 void setup() {
   Serial.begin(115200); 
@@ -98,8 +131,12 @@ void loop() {
     int currentAqi = ens160.getAQI();
 
     updateLedsBasedOnAir(currentAqi); 
+    Serial.print("AQI: "); Serial.print(currentAqi);
+    Serial.print(" | CO2: "); Serial.print(ens160.geteCO2());
+    Serial.print(" ppm | TVOC: "); Serial.print(ens160.getTVOC());
+    Serial.println(" ppb");
 
-    if (millis() - lastSendTime >= 10000) {
+    if (millis() - lastSendTime >= 20000) {
 
       WiFiClient client;
       HTTPClient http;
@@ -108,12 +145,15 @@ void loop() {
       http.addHeader("Content-Type", "application/x-www-form-urlencoded");
 
       String httpRequestData;
-      httpRequestData = "identity=air_sensor";
-      httpRequestData += "&hour=0";
-      httpRequestData += "&minute=0";
+      httpRequestData = "identity=" + device_identity;
+      httpRequestData += "&hour=" + getTime(2); 
+      httpRequestData += "&minute=" + getTime(3);
       httpRequestData += "&quality=" + String(currentAqi);
       httpRequestData += "&temp=" + String(tempC);
       httpRequestData += "&hum=" + String(humidity);
+      httpRequestData += "&eco2=" + String(ens160.geteCO2());
+      httpRequestData += "&tvoc=" + String(ens160.getTVOC());
+
 
       int httpResponseCode = http.POST(httpRequestData);
 
@@ -123,10 +163,7 @@ void loop() {
       http.end();
       lastSendTime = millis();
   }
-    Serial.print("AQI: "); Serial.print(currentAqi);
-    Serial.print(" | CO2: "); Serial.print(ens160.geteCO2());
-    Serial.print(" ppm | TVOC: "); Serial.print(ens160.getTVOC());
-    Serial.println(" ppb");
+
   }
 
   // 3. PULSING BUZZER LOGIC (Only in Red Alert)
