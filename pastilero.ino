@@ -18,7 +18,6 @@ int ledState = LOW;
 //Las chupi variables de Gonzalo el hacker//
 
 bool leds=true;
-bool buzzer=true;
 int hora;
 int minutos;
 //Fin :(//
@@ -66,7 +65,6 @@ msg += ":";
 msg += minutos;
 msg += "\nAviso visual LEDs: ";
 msg += leds ? "ON" : "OFF";
-msg += "\nAviso sonoro: ";
 msg += buzzer ? "ON" : "OFF";
 
 bot.sendMessage(chat_id, msg, ""); 
@@ -92,18 +90,6 @@ bot.sendMessage(chat_id, msg, "");
       }
 
     }
-
-    if (text == "/toggle_buzzer") { //GON
-
-      if (buzzer == true) {
-        buzzer = false;
-        bot.sendMessage(chat_id, "Aviso sonoro desactivado", "");
-      } 
-      else {
-        buzzer = true;
-        bot.sendMessage(chat_id, "Aviso sonoro activado", "");
-      }
-
     }
 
     if (text == "/???") { //GON
